@@ -45,3 +45,30 @@ Always validate with `make format && make check` before finishing.
 ## Code style
 - Prefer readable Python over clever Python.
 - Avoid over-abstraction.
+
+## DDD Architecture
+
+This project follows Domain-Driven Design.
+
+Directory names are flexible — adapt per project (e.g. `core/` instead of `domain/`).
+Dependency rules are NOT flexible — ALWAYS enforce these regardless of naming.
+
+### Layers
+
+| Layer | Recommended dir | Responsibility |
+|-------|----------------|----------------|
+| Domain | `domain/` | Entities, Value Objects, Domain Services, Repository interfaces (ABC). No external dependencies. |
+| Application | `application/` | Use cases / application services. Depends only on Domain layer. |
+| Infrastructure | `infrastructure/` | Repository implementations, DB, external API clients. Implements Domain interfaces. |
+| Presentation | `presentation/` | CLI, API endpoints, request/response handling. Calls Application layer. |
+
+All layers live under `src/`.
+
+### Dependency rules
+
+- **Domain layer has zero dependencies** on other layers and external packages (stdlib only).
+- **Application layer depends only on Domain.**
+- **Infrastructure implements Domain interfaces** (Repository ABC, etc.) — never import Infrastructure from Domain.
+- **Presentation calls Application** — never bypasses to Infrastructure directly.
+
+Direction: Presentation → Application → Domain ← Infrastructure
