@@ -9,7 +9,9 @@
       "Bash(uv run *)",
       "Bash(git status)",
       "Bash(git diff*)",
-      "Bash(git log*)"
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch*)"
     ],
     "deny": [
       "Bash(rm -rf *)",
@@ -23,7 +25,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CMD=$(jq -r '.tool_input.command'); case \"$CMD\" in *'uv add'*|*'pip install'*) echo 'BLOCKED: 依存関係の追加には明示的な承認が必要です' >&2; exit 1;; esac"
+            "command": "CMD=$(jq -r '.tool_input.command'); case \"$CMD\" in *'uv add'*|*'pip install'*) echo '{\"event\":\"hook.block\",\"hook\":\"PreToolUse:Bash\",\"detail\":\"'\"$CMD\"'\"}' | python3 .claude/scripts/emit_event.py & echo 'BLOCKED: 依存関係の追加には明示的な承認が必要です' >&2; exit 2;; esac"
           }
         ]
       },
@@ -32,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "FILE=$(jq -r '.tool_input.file_path'); case \"$FILE\" in */.github/*) echo 'BLOCKED: CI/CDファイルの変更は明示的な許可が必要です' >&2; exit 1;; esac"
+            "command": "FILE=$(jq -r '.tool_input.file_path'); case \"$FILE\" in */.github/*) echo '{\"event\":\"hook.block\",\"hook\":\"PreToolUse:Edit\",\"detail\":\"'\"$FILE\"'\"}' | python3 .claude/scripts/emit_event.py & echo 'BLOCKED: CI/CDファイルの変更は明示的な許可が必要です' >&2; exit 2;; esac"
           }
         ]
       }
@@ -43,7 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "FILE=$(jq -r '.tool_input.file_path'); if [[ \"$FILE\" == *.py ]]; then uv run ruff format \"$FILE\" && uv run ruff check --fix \"$FILE\"; fi"
+            "command": "FILE=$(jq -r '.tool_input.file_path'); if [[ \"$FILE\" == *.py ]]; then FMT_OUT=$(uv run ruff format \"$FILE\" 2>&1); CHK_OUT=$(uv run ruff check --fix \"$FILE\" 2>&1); echo \"$FMT_OUT$CHK_OUT\"; if echo \"$FMT_OUT$CHK_OUT\" | grep -q 'reformatted\\|Fixed'; then echo '{\"event\":\"hook.autofix\",\"hook\":\"PostToolUse:Edit\",\"detail\":\"'\"$FILE\"'\"}' | python3 .claude/scripts/emit_event.py & fi; fi"
           }
         ]
       }

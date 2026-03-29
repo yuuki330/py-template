@@ -20,3 +20,7 @@ htmlcov/
 
 # OS
 .DS_Store
+
+# Harness logs
+.claude/logs/*.jsonl
+.claude/logs/review-*.md

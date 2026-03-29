@@ -48,27 +48,10 @@ Always validate with `make format && make check` before finishing.
 
 ## DDD Architecture
 
-This project follows Domain-Driven Design.
-
-Directory names are flexible — adapt per project (e.g. `core/` instead of `domain/`).
-Dependency rules are NOT flexible — ALWAYS enforce these regardless of naming.
-
-### Layers
-
-| Layer | Recommended dir | Responsibility |
-|-------|----------------|----------------|
-| Domain | `domain/` | Entities, Value Objects, Domain Services, Repository interfaces (ABC). No external dependencies. |
-| Application | `application/` | Use cases / application services. Depends only on Domain layer. |
-| Infrastructure | `infrastructure/` | Repository implementations, DB, external API clients. Implements Domain interfaces. |
-| Presentation | `presentation/` | CLI, API endpoints, request/response handling. Calls Application layer. |
-
-All layers live under `src/`.
-
-### Dependency rules
-
-- **Domain layer has zero dependencies** on other layers and external packages (stdlib only).
-- **Application layer depends only on Domain.**
-- **Infrastructure implements Domain interfaces** (Repository ABC, etc.) — never import Infrastructure from Domain.
-- **Presentation calls Application** — never bypasses to Infrastructure directly.
+This project follows Domain-Driven Design with four layers under `src/`:
+`domain/`, `application/`, `infrastructure/`, `presentation/`.
 
 Direction: Presentation → Application → Domain ← Infrastructure
+
+Directory names are flexible per project; dependency rules are fixed.
+Layer-specific import rules are defined in `.claude/rules/` and load automatically when working with files in each layer directory.
